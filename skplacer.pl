@@ -48,13 +48,6 @@ label(H, (MaxType,CharactSecType)):-
     highestType(Label,MaxType),
     characteristicsLabel(Characteristics, ListOfCharactTypes),
     lowestType(ListOfCharactTypes, CharactSecType).
-/*label(H, (MaxType,CharactSecType)):-
-    hardware(H, Data,Characteristics,_),
-    dataLabel(Data,Label),
-    highestType(Label,MaxType),
-    characteristicsLabel(Characteristics, ListOfCharactTypes),
-    lowestType(ListOfCharactTypes, CharactSecType),
-    checkHwType(H,MaxType,CharactSecType).*/
 
 %tagData(Data,Label)
 dataLabel([Data|Ds],[Type|Label]):-
