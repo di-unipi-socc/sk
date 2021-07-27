@@ -20,9 +20,10 @@ partition([S|Ss], Partitions, NewPartitions) :-
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar1), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)), \+ gt(TChar,TData),
+    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gt(TChar,TData),
     select( ((TData,TChar), P, PHW), Partitions, TmpPartitions),
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar), [S|P], NewHW),
+    %TODO: check hardware che tocca
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
     software(S,_,(_,SHW),_), label(S, (TData,TChar)),
