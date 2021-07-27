@@ -13,7 +13,6 @@ tagComponent(ComponentId, (DataSecType,CharactSecType)):-
     highestType(ListOfSecTypes,DataSecType),
     tagCharacteristics(ListOfCharact, ListOfCharactTypes),
     lowestType(ListOfCharactTypes, CharactSecType).
-
 tagComponent(ComponentId, (DataSecType,CharactSecType)):-
     componentHW(ComponentId, ListOfData,ListOfCharact,_),
     tagData(ListOfData,ListOfSecTypes),
