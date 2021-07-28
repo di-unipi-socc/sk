@@ -9,12 +9,12 @@ application(iotApp3, [network1, network2, thermostat, lights, camera, lock, disk
                       network2Controller, thermostatController, lightsController, cameraController, lockController,
                       diskController2, diskDeclassifier ]).
 
-%software(componentId, ListOfData,ListOfReqs,ListOfLinkedComponents,SW)
-%hardware(componentId, ListOfData,ListOfCharacteristics,ListOfLinkedComponents)
+%software(componentId, ListOfData,ListOfReqs,LinkedComponents,SW)
+%hardware(componentId, ListOfData,ListOfCharacteristics,LinkedComponents)
 software( userConfig, 
             [wantedTemp, wantedBright, cameraActivation, schedule, aiActive], %data
             ([], (2,256,128)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [aiLearning, businessLogic, authentication, diskController] %linked components
+            ([],[aiLearning, businessLogic, authentication, diskController]) %(hw,sw)
             ).
 
 software( businessLogic, 
@@ -22,7 +22,7 @@ software( businessLogic,
                 cameraStream, thermostatStatus, lightStatus, cameraStatus, lockStatus, lockCommands,
                 actuationCommands, cameraLive], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [aiLearning, businessLogic, authentication] %linked components
+            ([],[aiLearning, businessLogic, authentication]) %linked components
             ).
 
 software( authentication, 
@@ -30,37 +30,37 @@ software( authentication,
                 cameraStream, thermostatStatus, lightStatus, cameraStatus, lockStatus, lockCommands,
                 actuationCommands, cameraLive, credentials], %data
             ([tlsLibrary], (1,512,256)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [userConfig, businessLogic, network1Controller, diskController] %linked components
+            ([],[userConfig, businessLogic, network1Controller, diskController]) %linked components
             ).
 
 software( thermostatController, 
             [wantedTemp, thermostatTemp, actuationCommands], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [businessLogic, network2Controller] %linked components
+            ([],[businessLogic, network2Controller])%linked components
             ).
 
 software( lightsController, 
             [wantedBright, lightBright, actuationCommands], %data
             ([ligthDriver], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [businessLogic, network2Controller] %linked components
+            ([],[businessLogic, network2Controller]) %linked components
             ).
 
 software( cameraController, 
             [cameraActivation, cameraLive, cameraStatus, cameraStream], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [businessLogic, network2Controller] %linked components
+            ([],[businessLogic, network2Controller]) %linked components
             ).
 
 software( lockController, 
             [lockCommands, lockStatus], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [businessLogic, network2Controller] %linked components
+            ([],[businessLogic, network2Controller]) %linked components
             ).
 
 software( network1Controller, 
             [networkInput, networkOutput], %data
             ([networkDriver], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [authentication, network1] %linked components
+            ([network1],[authentication]) %linked components
             ).
 
 software( network2Controller, 
@@ -68,31 +68,31 @@ software( network2Controller,
                 cameraStream, thermostatStatus, lightStatus, cameraStatus, lockStatus, lockCommands,
                 actuationCommands, cameraLive], %data
             ([], (1,512,256)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [thermostatController, lightsController, lockController, cameraController, network2, diskController] %linked components
+            ([network2],[thermostatController, lightsController, lockController, cameraController, diskController]) %linked components
             ).
 
 software( diskController, 
             [schedule, credentials, wantedTemp, wantedBright, cameraActivation, aiActive], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [userConfig, authentication, network2Controller, disk] %linked components
+            ([disk],[userConfig, authentication, network2Controller]) %linked components
             ).
 
 software( aiLearning, 
             [wantedTemp, wantedBright, cameraActivation, schedule, aiActive,thermostatTemp, lightBright, cameraStream], %data
             ([aiFramework], (4,2048,0)), %reqs(ListOfCharacteristics, (CPU, Memory,Storage))
-            [userConfig, businessLogic] %linked components
+            ([],[userConfig, businessLogic]) %linked components
             ).
 
 software( diskController2, 
             [schedule, credentials, wantedTemp, wantedBright, cameraActivation, aiActive], %data
             ([diskDriver], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [businessLogic, diskDeclassifier] %linked components
+            ([],[businessLogic, diskDeclassifier]) %linked components
             ).
 
 software( diskDeclassifier, 
             [schedule, credentials, wantedTemp, wantedBright, cameraActivation, aiActive], %data
             ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            [diskController, disk] %linked components
+            ([disk],[diskController]) %linked components
             ).
 
 %%%%%Hardware componenents

@@ -5,6 +5,7 @@ partition(AppId, Partitions) :-
     hardwareOK(Hardware),
     partition(Software, [], Partitions).
 
+%check the labelling of hardware components
 hardwareOK([H|Hs]) :- 
     hardware(H, Data, Characteristics,_),
     dataLabel(Data,DLabel), highestType(DLabel,MaxDType),
@@ -14,13 +15,13 @@ hardwareOK([H|Hs]) :-
 hardwareOK([]).
 
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),LinkedHW), label(S, (TData,TChar)),
+    software(S,_,(_,SHW),(LinkedHW,_)), label(S, (TData,TChar)),
     partitionCharLabel(TChar,TData,LinkedHW,TCP),
     select( ((TData,TCP), P, PHW), Partitions, TmpPartitions),
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),LinkedHW), label(S, (TData,TChar)),
+    software(S,_,(_,SHW),(LinkedHW,_)), label(S, (TData,TChar)),
     partitionCharLabel(TChar,TData,LinkedHW,TCP),
     \+ member( ((TData,TCP), _, _), Partitions), % comment this to find all solutions combinatorially
     P = ( (TData,TCP), [S], SHW),
@@ -30,19 +31,16 @@ partition([],P,P).
 partitionCharLabel(TChar,TData,_,safe):- gte(TChar,TData).
 partitionCharLabel(TChar,TData,LinkedHW,TChar):- lt(TChar,TData),trustedHW(LinkedHW,TData).
 
-%given the list of linked components, check if it is trustable with the data
-%TODO member e separa hw and sw trusted
-trustedHW([S|LinkedC],TData):- software(S,_,_,_), trustedHW(LinkedC, TData).
-trustedHW([H|LinkedC], TData):- 
-    hardware(H,_,Characteristics,_),
-    characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
-    maxType(TData, MinCType, MinCType), %check if an hardware component is trusted for the level of data
-    trustedHW(LinkedC, TData).
-trustedHW([],_).
+%given the list of linked hardware, check if it is trustable with the data
+trustedHW(LinkedHW, TData):-
+    \+ (
+        member(HW,LinkedHW),hardware(HW,_,Characteristics,_),
+        characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
+        lt(MinCType, TData)
+        ).
 
 gte(T1, T2):- T1=T2; (dif(T1,T2), maxType(T1,T2,T1)).
 lt(T1, T2):- dif(T1,T2), minType(T1,T2,T1).
-
 
 sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
     CPU is max(CPU1, CPU2),
