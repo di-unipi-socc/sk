@@ -14,40 +14,35 @@ hardwareOK([H|Hs]) :-
 hardwareOK([]).
 
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
-    select( (p(TData), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( p(TData), [S|P], NewHW),
+    software(S,_,(_,SHW),LinkedHW), label(S, (TData,TChar)),
+    partitionCharLabel(TChar,TData,LinkedHW,TCP),
+    select( ((TData,TCP), P, PHW), Partitions, TmpPartitions),
+    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
-    checkLinkedHW(LinkedC, TData),
-    select( (p(TData,TChar), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( p(TData,TChar), [S|P], NewHW),
-    partition(Ss, [PNew|TmpPartitions], NewPartitions).
-partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
-    \+ member( (p(TData), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( p(TData), [S], SHW),
+    software(S,_,(_,SHW),LinkedHW), label(S, (TData,TChar)),
+    partitionCharLabel(TChar,TData,LinkedHW,TCP),
+    \+ member( ((TData,TCP), _, _), Partitions), % comment this to find all solutions combinatorially
+    P = ( (TData,TCP), [S], SHW),
     partition(Ss, [P|Partitions], NewPartitions).
-partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
-    checkLinkedHW(LinkedC, TData),
-    \+ member( (p(TData,TChar), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( p(TData,TChar), [S], SHW),
-    partition(Ss, [P|Partitions], NewPartitions). 
 partition([],P,P).
 
+partitionCharLabel(TChar,TData,_,safe):- gte(TChar,TData).
+partitionCharLabel(TChar,TData,LinkedHW,TChar):- lt(TChar,TData),trustedHW(LinkedHW,TData).
+
 %given the list of linked components, check if it is trustable with the data
-checkLinkedHW([S|LinkedC],TData):- software(S,_,_,_), checkLinkedHW(LinkedC, TData).
-checkLinkedHW([H|LinkedC], TData):- 
+%TODO member e separa hw and sw trusted
+trustedHW([S|LinkedC],TData):- software(S,_,_,_), trustedHW(LinkedC, TData).
+trustedHW([H|LinkedC], TData):- 
     hardware(H,_,Characteristics,_),
     characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
     maxType(TData, MinCType, MinCType), %check if an hardware component is trusted for the level of data
-    checkLinkedHW(LinkedC, TData).
-checkLinkedHW([],_).    
+    trustedHW(LinkedC, TData).
+trustedHW([],_).
 
-gte(T,T).
-gte(T1, T2):- dif(T1,T2), maxType(T1,T2,T1).
+gte(T1, T2):- T1=T2; (dif(T1,T2), maxType(T1,T2,T1)).
+lt(T1, T2):- dif(T1,T2), minType(T1,T2,T1).
+
 
 sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
     CPU is max(CPU1, CPU2),
