@@ -32,9 +32,6 @@ partition([S|Ss], Partitions, NewPartitions) :-
     partition(Ss, [P|Partitions], NewPartitions). 
 partition([],P,P).
 
-gte(T,T).
-gte(T1, T2):- dif(T1,T2), maxType(T1,T2,T1).
-
 gt(T1, T2):- dif(T1,T2), maxType(T1,T2,T1).
 
 sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
