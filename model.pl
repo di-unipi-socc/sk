@@ -41,7 +41,7 @@ software( thermostatController,
 
 software( lightsController, 
             [wantedBright, lightBright, actuationCommands], %data
-            ([], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
+            ([ligthDriver], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
             [businessLogic, network2Controller] %linked components
             ).
 
@@ -173,3 +173,4 @@ tag(networkDriver, low).
 tag(aiFramework, low).
 tag(sharedDisk, low).
 tag(diskDriver, low).
+tag(ligthDriver, medium).

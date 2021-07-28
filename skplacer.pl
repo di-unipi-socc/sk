@@ -15,25 +15,25 @@ hardwareOK([]).
 
 partition([S|Ss], Partitions, NewPartitions) :-
     software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
-    select( ((TData,TData), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TData), [S|P], NewHW),
+    select( (p(TData), P, PHW), Partitions, TmpPartitions),
+    sumHW(SHW,PHW,NewHW), PNew = ( p(TData), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
     software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
     checkLinkedHW(LinkedC, TData),
-    select( ((TData,TChar), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar), [S|P], NewHW),
+    select( (p(TData,TChar), P, PHW), Partitions, TmpPartitions),
+    sumHW(SHW,PHW,NewHW), PNew = ( p(TData,TChar), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
     software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
-    \+ member( ((TData,TData), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( (TData,TData), [S], SHW),
+    \+ member( (p(TData), _, _), Partitions), % comment this to find all solutions combinatorially
+    P = ( p(TData), [S], SHW),
     partition(Ss, [P|Partitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
     software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
     checkLinkedHW(LinkedC, TData),
-    \+ member( ((TData,TChar), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( (TData,TChar), [S], SHW),
+    \+ member( (p(TData,TChar), _, _), Partitions), % comment this to find all solutions combinatorially
+    P = ( p(TData,TChar), [S], SHW),
     partition(Ss, [P|Partitions], NewPartitions). 
 partition([],P,P).
 
