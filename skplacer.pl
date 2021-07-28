@@ -8,31 +8,46 @@ partition(AppId, Partitions) :-
 hardwareOK([H|Hs]) :- 
     hardware(H, Data, Characteristics,_),
     dataLabel(Data,DLabel), highestType(DLabel,MaxDType),
-    characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MaxCType),
-    maxType(MaxDType, MaxCType, MaxCType), %check if an hardware component is trusted for the level of its data
+    characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
+    maxType(MaxDType, MinCType, MinCType), %check if an hardware component is trusted for the level of its data
     hardwareOK(Hs).
 hardwareOK([]).
 
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)), gt(TChar,TData),
-    member( ((TData,TChar1), P, PHW), Partitions), 
-    select( ((TData,TChar1), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar1), [S|P], NewHW),
+    software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
+    select( ((TData,TData), P, PHW), Partitions, TmpPartitions),
+    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TData), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)), \+ gt(TChar,TData),
+    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
+    checkLinkedHW(LinkedC, TData),
     select( ((TData,TChar), P, PHW), Partitions, TmpPartitions),
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar), [S|P], NewHW),
-    %TODO: check hardware che tocca
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),_), label(S, (TData,TChar)),
+    software(S,_,(_,SHW),_), label(S, (TData,TChar)), gte(TChar,TData),
+    \+ member( ((TData,TData), _, _), Partitions), % comment this to find all solutions combinatorially
+    P = ( (TData,TData), [S], SHW),
+    partition(Ss, [P|Partitions], NewPartitions).
+partition([S|Ss], Partitions, NewPartitions) :-
+    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gte(TChar,TData),
+    checkLinkedHW(LinkedC, TData),
     \+ member( ((TData,TChar), _, _), Partitions), % comment this to find all solutions combinatorially
     P = ( (TData,TChar), [S], SHW),
     partition(Ss, [P|Partitions], NewPartitions). 
 partition([],P,P).
 
-gt(T1, T2):- dif(T1,T2), maxType(T1,T2,T1).
+%given the list of linked components, check if it is trustable with the data
+checkLinkedHW([S|LinkedC],TData):- software(S,_,_,_), checkLinkedHW(LinkedC, TData).
+checkLinkedHW([H|LinkedC], TData):- 
+    hardware(H,_,Characteristics,_),
+    characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
+    maxType(TData, MinCType, MinCType), %check if an hardware component is trusted for the level of data
+    checkLinkedHW(LinkedC, TData).
+checkLinkedHW([],_).    
+
+gte(T,T).
+gte(T1, T2):- dif(T1,T2), maxType(T1,T2,T1).
 
 sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
     CPU is max(CPU1, CPU2),
