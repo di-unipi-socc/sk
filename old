@@ -1,0 +1,7 @@
+checkHwType(CId, MaxType, CharactSecType):-
+    dif(MaxType,CharactSecType),
+    maxType(MaxType, CharactSecType, MaxType),
+    hardware(CId, Data,Characteristics,_),
+    findall(Param, (member(Param,Data), tag(Param, MaxType)), Datas),
+    findall(Charac, (member(Charac,Characteristics), tag(Charac, CharactSecType)), Characs),
+    throw(typeError(CId, Characs, CharactSecType, Datas, MaxType,"hw component security level lower than data security level.")).

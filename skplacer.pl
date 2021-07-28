@@ -9,7 +9,7 @@ hardwareOK([H|Hs]) :-
     hardware(H, Data, Characteristics,_),
     dataLabel(Data,DLabel), highestType(DLabel,MaxDType),
     characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MaxCType),
-    checkHwType(H,MaxDType,MaxCType),
+    maxType(MaxDType, MaxCType, MaxCType), %check if an hardware component is trusted for the level of its data
     hardwareOK(Hs).
 hardwareOK([]).
 
@@ -20,7 +20,7 @@ partition([S|Ss], Partitions, NewPartitions) :-
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar1), [S|P], NewHW),
     partition(Ss, [PNew|TmpPartitions], NewPartitions).
 partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),LinkedC), label(S, (TData,TChar)), \+ gt(TChar,TData),
+    software(S,_,(_,SHW),_), label(S, (TData,TChar)), \+ gt(TChar,TData),
     select( ((TData,TChar), P, PHW), Partitions, TmpPartitions),
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TChar), [S|P], NewHW),
     %TODO: check hardware che tocca
@@ -58,20 +58,9 @@ characteristicsLabel([Charact|Characteristics],[Type|ListOfCharactTypes]):-
     tag(Charact, Type),
     characteristicsLabel(Characteristics, ListOfCharactTypes).
 characteristicsLabel([Charact|Characteristics],[HighestType|ListOfCharactTypes]):-
-    \+(tag(Charact, _)),
+    \+ tag(Charact, _),
     highestType(HighestType),
     characteristicsLabel(Characteristics, ListOfCharactTypes).
-
-%check if an hardware component is trusted for the level of its data
-checkHwType(_, MaxType, CharactSecType):-
-    maxType(MaxType, CharactSecType, CharactSecType).
-checkHwType(CId, MaxType, CharactSecType):-
-    dif(MaxType,CharactSecType),
-    maxType(MaxType, CharactSecType, MaxType),
-    hardware(CId, Data,Characteristics,_),
-    findall(Param, (member(Param,Data), tag(Param, MaxType)), Datas),
-    findall(Charac, (member(Charac,Characteristics), tag(Charac, CharactSecType)), Characs),
-    throw(typeError(CId, Characs, CharactSecType, Datas, MaxType,"hw component security level lower than data security level.")).
 
 %find highest type in a list
 highestType([T], T).
@@ -109,12 +98,8 @@ innerMinType(X, Y, Low) :-											%labels not reachable with path (on differe
 lattice_higherThan(X, Y) :- g_lattice_higherThan(X,Y).
 lattice_higherThan(X, Y) :- g_lattice_higherThan(X,W), lattice_higherThan(W,Y).
 
-
-
 %highestType of the lattice
-highestType(HighestType):-
-    g_lattice_higherThan(HighestType,_), \+ (g_lattice_higherThan(_,HighestType)).
+highestType(HighestType):- g_lattice_higherThan(HighestType,_), \+ (g_lattice_higherThan(_,HighestType)).
 
 %lowest type of the lattice
-lowestType(LowestType):-
-	g_lattice_higherThan(_,LowestType), \+ (g_lattice_higherThan(LowestType,_)).
+lowestType(LowestType):- g_lattice_higherThan(_,LowestType), \+ (g_lattice_higherThan(LowestType,_)).
