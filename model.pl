@@ -7,7 +7,10 @@ application(iotApp2, [network1, network2, thermostat2, lights, camera, lock, dis
                       diskController]).
 application(iotApp3, [network1, network2, thermostat, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
                       network2Controller, thermostatController, lightsController, cameraController, lockController,
-                      diskController2, diskDeclassifier ]).
+                      diskController2 ]).
+application(iotApp4, [network1, network2, thermostat2, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
+                      network2Controller, thermostatController, lightsController, cameraController, lockController,
+                      diskController2 ]).
 
 %software(componentId, ListOfData,ListOfReqs,LinkedComponents,SW)
 %hardware(componentId, ListOfData,ListOfCharacteristics,LinkedComponents)
@@ -86,7 +89,7 @@ software( aiLearning,
 software( diskController2, 
             [schedule, credentials, wantedTemp, wantedBright, cameraActivation, aiActive], %data
             ([diskDriver], (1,512,0)), %reqs(ListOfCharacteristics, (vCPUs, MBmemory,MBstorage))
-            ([],[businessLogic, diskDeclassifier]) %linked components
+            ([disk],[businessLogic]) %linked components
             ).
 
 software( diskDeclassifier, 
