@@ -1,32 +1,33 @@
 :- ['model.pl'].
 
-partition(AppId, Partitions) :-
+sKnife(AppId, Partitions) :-
     application(AppId, Hardware, Software),
     hardwareOK(Hardware),
-    partition(Software, [], Partitions).
+    partitioning(Software, [], Partitions).
 
 %check the labelling of hardware components
 hardwareOK([H|Hs]) :- 
     hardware(H, Data, Characteristics,_),
     dataLabel(Data,DLabel), highestType(DLabel,MaxDType),
     characteristicsLabel(Characteristics, CLabel), lowestType(CLabel, MinCType),
-    maxType(MaxDType, MinCType, MinCType), %check if an hardware component is trusted for the level of its data
+    gte(MinCType,MaxDType),
+    %maxType(MaxDType, MinCType, MinCType), %check if an hardware component is trusted for the level of its data
     hardwareOK(Hs).
 hardwareOK([]).
 
-partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),(LinkedHW,_)), label(S, (TData,TChar)),
+partitioning([S|Ss], Partitions, NewPartitions) :-
+    software(S,Data,(Charact,SHW),(LinkedHW,_)), labelSw(Data, Charact,(TData,TChar)),
     partitionCharLabel(TChar,TData,LinkedHW,TCP),
     select( ((TData,TCP), P, PHW), Partitions, TmpPartitions),
     sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
-    partition(Ss, [PNew|TmpPartitions], NewPartitions).
-partition([S|Ss], Partitions, NewPartitions) :-
-    software(S,_,(_,SHW),(LinkedHW,_)), label(S, (TData,TChar)),
+    partitioning(Ss, [PNew|TmpPartitions], NewPartitions).
+partitioning([S|Ss], Partitions, NewPartitions) :-
+    software(S,Data,(Charact,SHW),(LinkedHW,_)), labelSw(Data, Charact,(TData,TChar)),
     partitionCharLabel(TChar,TData,LinkedHW,TCP),
     \+ member( ((TData,TCP), _, _), Partitions), % comment this to find all solutions combinatorially
     P = ( (TData,TCP), [S], SHW),
-    partition(Ss, [P|Partitions], NewPartitions).
-partition([],P,P).
+    partitioning(Ss, [P|Partitions], NewPartitions).
+partitioning([],P,P).
 
 partitionCharLabel(TChar,TData,_,safe):- gte(TChar,TData).
 partitionCharLabel(TChar,TData,LinkedHW,TChar):- lt(TChar,TData),trustedHW(LinkedHW,TData).
@@ -47,8 +48,7 @@ sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
     RAM is RAM1 + RAM2,
     HDD is HDD1 + HDD2.
 
-label(H, (MaxType,CharactSecType)):-
-    software(H, Data,(Characteristics,_),_),
+labelSw(Data, Characteristics, (MaxType,CharactSecType)):-
     dataLabel(Data,Label),
     highestType(Label,MaxType),
     characteristicsLabel(Characteristics, ListOfCharactTypes),
@@ -111,3 +111,17 @@ highestType(HighestType):- g_lattice_higherThan(HighestType,_), \+ (g_lattice_hi
 
 %lowest type of the lattice
 lowestType(LowestType):- g_lattice_higherThan(_,LowestType), \+ (g_lattice_higherThan(LowestType,_)).
+
+/*partitionDem(Sws, [S|Ss], Partitions, NewPartitions) :-
+    software(S,Data,(Charact,SHW),(LinkedHW,_)), labelSw(Data, Charact,(TData,TChar)),
+    partitionCharLabel(TChar,TData,LinkedHW,TCP),
+    select( ((TData,TCP), P, PHW), Partitions, TmpPartitions),
+    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
+    partitionDem(Sws, Ss, [PNew|TmpPartitions], NewPartitions).
+partitionDem(Sws, [S|Ss], Partitions, NewPartitions) :-
+    software(S,Data,(Charact,SHW),(LinkedHW,_)), labelSw(Data, Charact,(TData,TChar)),
+    partitionCharLabel(TChar,TData,LinkedHW,TCP),
+    \+ member( ((TData,TCP), _, _), Partitions),
+    P = ( (TData,TCP), [S], SHW),
+    partition(Sws, Ss, [P|Partitions], NewPartitions).
+partitionDem(Sws,[],P,P).*/

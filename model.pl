@@ -12,7 +12,7 @@ application(iotApp4, [network1, network2, thermostat2, lights, camera, lock, dis
                       network2Controller, thermostatController, lightsController, cameraController, lockController,
                       diskController2 ]).
 
-%software(componentId, ListOfData,ListOfReqs,LinkedComponents,SW)
+%software(componentId, ListOfData,ListOfReqs,LinkedComponents)
 %hardware(componentId, ListOfData,ListOfCharacteristics,LinkedComponents)
 software( userConfig, 
             [wantedTemp, wantedBright, cameraActivation, schedule, aiActive], %data
