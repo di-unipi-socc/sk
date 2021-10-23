@@ -6,7 +6,7 @@ sumHW((CPU1, RAM1, HDD1),(CPU2, RAM2, HDD2),(CPU, RAM, HDD)) :-
     RAM is RAM1 + RAM2,
     HDD is HDD1 + HDD2.
 
-label(NewTags, Data,Characteristics, (MaxType,CharactSecType)):-
+labelSw(NewTags, Data,Characteristics, (MaxType,CharactSecType)):-
     dataLabel(NewTags, Data,Label),
     highestType(Label,MaxType),
     characteristicsLabel(NewTags, Characteristics, ListOfCharactTypes),
