@@ -44,7 +44,7 @@ hardwareOK(_,[],ok).
 
 %labels software components with Type of Data and  Type of Characteristics
 softwareLabel(NewTags,[Sw|Sws],[(Sw,TData,TChar)|LabelledSws]):-
-    software(Sw, Data,Characteristics,_,_),
+    software(Sw, Data,Characteristics,_),
     labelSw(NewTags, Data, Characteristics,(TData,TChar)),
     softwareLabel(NewTags,Sws,LabelledSws).
 softwareLabel(_,[],[]).
@@ -56,10 +56,12 @@ softwareOk(NewTags, LabelledSoftware, ok):-
         externalLeak(NewTags, [Sw], [] ,TData, LabelledSoftware, Res),
         dif(Res, ok)
       ).
-softwareOk(NewTags, LabelledSoftware,  ko(Sw,TData,TChar)):-
+%retrun first component of path
+softwareOk(NewTags, LabelledSoftware, ko(Sw,TData,TChar)):-
     member((Sw,TData,TChar), LabelledSoftware),
     lt(TChar,TData),
     externalLeak(NewTags, [Sw], [] ,TData, LabelledSoftware,ko(Sw,_,_)).
+%return each other component of path
 softwareOk(NewTags, LabelledSoftware, ko(C,skip(Sw,TData),CCType)):-
     member((Sw,TData,TChar), LabelledSoftware),
     lt(TChar,TData),
@@ -69,32 +71,32 @@ externalLeak(_,[],_,_,_,ok).
 externalLeak(NewTags, LinkedSW, Visited,TData, LabelledSoftware, ok):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,VisitLinkedSW)),
+    software(Sw, _,_,(LinkedHW,VisitLinkedSW)),
     trustedHW(NewTags, LinkedHW, TData, ok),
     externalLeak(NewTags, VisitLinkedSW, [Sw|Visited], TData, LabelledSoftware, ok).
 %passing sw component ko
 externalLeak(NewTags, LinkedSW, Visited,TData, LabelledSoftware, ko(Sw, skip,TChar)):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,VisitLinkedSW)),
+    software(Sw, _,_,(LinkedHW,VisitLinkedSW)),
     trustedHW(NewTags, LinkedHW, TData, ok),
     once(externalLeak(NewTags, VisitLinkedSW, [Sw|Visited], TData, LabelledSoftware, ko(_,_,_))).
 externalLeak(NewTags, LinkedSW, Visited,TData, LabelledSoftware, ko(C, skip,TChar)):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,VisitLinkedSW)),
+    software(Sw, _,_,(LinkedHW,VisitLinkedSW)),
     trustedHW(NewTags, LinkedHW, TData, ok),
     externalLeak(NewTags, VisitLinkedSW, [Sw|Visited], TData, LabelledSoftware, ko(C,_,_)).
 %last sw component ko
 externalLeak(NewTags, LinkedSW, Visited,TData, LabelledSoftware, ko(Sw,skip,TChar)):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,_)),
+    software(Sw, _,_,(LinkedHW,_)),
     trustedHW(NewTags, LinkedHW, TData, ko(_,_,_)).
 externalLeak(NewTags, LinkedSW, Visited,TData, LabelledSoftware, ko(HW,skip,HWCType)):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,_)),
+    software(Sw, _,_,(LinkedHW,_)),
     trustedHW(NewTags, LinkedHW, TData, ko(HW,_,HWCType)).
 
 %given the list of linked hardware, check if it is trustable with the data
@@ -110,30 +112,27 @@ trustedHW(NewTags, LinkedHW, TData, ko(HW,TData,MinCType)):-
         lt(MinCType, TData).
 
 %given the list of labelled software components, it creates the partitions
-partitioning([(S,TData,TChar)|Ss], Partitions, NewPartitions) :-
-    software(S,_,_,SHW,_),
-    characteristicLabel(TChar,TData,TCP),
-    select(((TData,TCP), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
-    partitioning(Ss, [PNew|TmpPartitions], NewPartitions).
-partitioning([(S,TData,TChar)|Ss], Partitions, NewPartitions) :-
-    software(S,_,_,SHW,_),
-    characteristicLabel(TChar,TData,TCP),
-    \+ member(((TData,TCP), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( (TData,TCP), [S], SHW),
-    partitioning(Ss, [P|Partitions], NewPartitions).
+partitioning([(S,TData,TChar)|Ss], Partitioning, NewPartitioning) :-
+    partitionCharLabel(TChar,TData,TCD),
+    select( ((TData,TCD), Ds), Partitioning, TmpPartitioning),
+    DNew = ( (TData,TCD), [S|Ds]),
+    partitioning(Ss, [DNew|TmpPartitioning], NewPartitioning).
+partitioning([(S,TData,TChar)|Ss], Partitioning, NewPartitioning) :-
+    partitionCharLabel(TChar,TData,TCD),
+    \+ member( ((TData,TCD), _), Partitioning), % comment this to find all solutions combinatorially
+    DNew = ( (TData,TCD), [S]),
+    partitioning(Ss, [DNew|Partitioning], NewPartitioning).
 partitioning([],P,P).
 
-% assigns the suitable label to a characterstic in the partition
-characteristicLabel(TChar,TData,safe):- gte(TChar,TData).
-characteristicLabel(TChar,TData,TChar):- lt(TChar,TData).
+partitionCharLabel(TChar,TData,safe):- gte(TChar,TData).
+partitionCharLabel(TChar,TData,TChar):- lt(TChar,TData).
 
 %creates the tags given an error splitting hw and sw errors
 tagsOK(Tags, ko(Component, DType, CType), NewTags):-
     hardware(Component, Data, Characteristics,_),
     tagsOK(Tags, Data, Characteristics, DType, CType, NewTags).
 tagsOK(Tags, ko(Component, DType, CType), NewTags):-
-    software(Component,Data,Characteristics,_,_),
+    software(Component,Data,Characteristics,_),
     tagsOK(Tags, Data, Characteristics, DType, CType, NewTags).
 
 %creates new tags resolving the error
@@ -161,7 +160,7 @@ tagsOK(OldTags, _, Characteristics, skip(_,DType), _, NewTags):-
     increaseChar(CharToIncrease,DType, CharIncreased),
     mergeTags(OldTags, CharIncreased, NewTags).
 tagsOK(OldTags, _, Characteristics, skip(Root,DType), _, NewTags):-
-    software(Root, Data,_,_,_),
+    software(Root, Data,_,_),
     findall((D,DType), (member(D,Data), member((D,DType),OldTags)), OldDataTags),
     findall((D,DType), (member(D,Data), \+ member((D,_),OldTags), tag(D,DType)), OldData),
     append(OldDataTags, OldData, DataToReduce),

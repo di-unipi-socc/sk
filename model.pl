@@ -1,19 +1,14 @@
 %application(appId, listOfComponents)
 application(iotApp1, [network1, network2, thermostat, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
-                      network2Controller, thermostatController, lightsController, cameraController, lockController,
-                      diskController]).
+                      network2Controller, thermostatController, lightsController, cameraController, lockController, diskController]).
 application(iotApp2, [network1, network2, thermostat2, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
-                      network2Controller, thermostatController, lightsController, cameraController, lockController,
-                      diskController]).
+                      network2Controller, thermostatController, lightsController, cameraController, lockController, diskController]).
 application(iotApp3, [network1, network2, thermostat, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
-                      network2Controller, thermostatController, lightsController, cameraController, lockController,
-                      diskController2 ]).
+                      network2Controller, thermostatController, lightsController, cameraController, lockController, diskController2 ]).
 application(iotApp4, [network1, network2, thermostat2, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning, network1Controller, 
-                      network2Controller, thermostatController, lightsController, cameraController, lockController,
-                      diskController2 ]).
+                      network2Controller, thermostatController, lightsController, cameraController, lockController, diskController2 ]).
 application(iotApp5, [network1, network2, thermostat, lights, camera, lock, disk],[userConfig, businessLogic, authentication, aiLearning2, network1Controller, 
-                      network2Controller, thermostatController, lightsController2, cameraController, lockController,
-                      diskController]).
+                      network2Controller, thermostatController, lightsController2, cameraController, lockController,diskController]).
 
 %software(componentId, ListOfData,ListOfReqs,LinkedComponents)
 %hardware(componentId, ListOfData,ListOfCharacteristics,LinkedComponents)

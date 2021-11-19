@@ -17,7 +17,7 @@ hardwareOK([]).
 
 %labels software components with Type of Data and  Type of Characteristics
 softwareLabel([Sw|Sws],[(Sw,TData,TChar)|LabelledSws]):-
-    software(Sw, Data,Characteristics,_,_),
+    software(Sw, Data,Characteristics,_),
     labelC(Data, Characteristics,(TData,TChar)),
     softwareLabel(Sws,LabelledSws).
 softwareLabel([],[]).
@@ -32,13 +32,13 @@ softwareOk(LabelledSoftware):-
 externalLeak(LinkedSW, Visited,TData, LabelledSoftware):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,_)),
+    software(Sw, _,_,(LinkedHW,_)),
     \+ trustedHW(LinkedHW, TData).
 
 externalLeak(LinkedSW, Visited,TData, LabelledSoftware):-
     member(Sw, LinkedSW), \+(member(Sw, Visited)), member((Sw,_,TChar), LabelledSoftware),
     lt(TChar,TData),
-    software(Sw, _,_,_,(LinkedHW,VisitLinkedSW)),
+    software(Sw, _,_,(LinkedHW,VisitLinkedSW)),
     trustedHW(LinkedHW, TData),
     externalLeak(VisitLinkedSW, [Sw|Visited], TData, LabelledSoftware).
 
@@ -50,18 +50,16 @@ trustedHW(LinkedHW, TData):-
         lt(MinCType, TData)
         ).
 
-partitioning([(S,TData,TChar)|Ss], Partitions, NewPartitions) :-
-    software(S,_,_,SHW,_),
-    partitionCharLabel(TChar,TData,TCP),
-    select( ((TData,TCP), P, PHW), Partitions, TmpPartitions),
-    sumHW(SHW,PHW,NewHW), PNew = ( (TData,TCP), [S|P], NewHW),
-    partitioning(Ss, [PNew|TmpPartitions], NewPartitions).
-partitioning([(S,TData,TChar)|Ss], Partitions, NewPartitions) :-
-    software(S,_,_,SHW,_),
-    partitionCharLabel(TChar,TData,TCP),
-    \+ member( ((TData,TCP), _, _), Partitions), % comment this to find all solutions combinatorially
-    P = ( (TData,TCP), [S], SHW),
-    partitioning(Ss, [P|Partitions], NewPartitions).
+partitioning([(S,TData,TChar)|Ss], Partitioning, NewPartitioning) :-
+    partitionCharLabel(TChar,TData,TCD),
+    select( ((TData,TCD), Ds), Partitioning, TmpPartitioning),
+    DNew = ( (TData,TCD), [S|Ds]),
+    partitioning(Ss, [DNew|TmpPartitioning], NewPartitioning).
+partitioning([(S,TData,TChar)|Ss], Partitioning, NewPartitioning) :-
+    partitionCharLabel(TChar,TData,TCD),
+    \+ member( ((TData,TCD), _), Partitioning), % comment this to find all solutions combinatorially
+    DNew = ( (TData,TCD), [S]),
+    partitioning(Ss, [DNew|Partitioning], NewPartitioning).
 partitioning([],P,P).
 
 partitionCharLabel(TChar,TData,safe):- gte(TChar,TData).
@@ -139,43 +137,3 @@ highestType(HighestType):- g_lattice_higherThan(HighestType,_), \+ (g_lattice_hi
 
 %lowest type of the lattice
 lowestType(LowestType):- g_lattice_higherThan(_,LowestType), \+ (g_lattice_higherThan(LowestType,_)).
-
-
-%%%%%%%%% definition of well formed partition
-wellFormedPartition(P):-
-    dataConsistent(P), reliable(P).
-
-dataConsistent(((PTData, _), HostedSw, _)):-
-    \+ (
-        member(Sw, HostedSw),
-        software(Sw, Data,Characteristics,_,_),
-        labelC(Data, Characteristics,(CTData,_)),
-        dif(PTData, CTData)
-    ).
-
-reliable(((_, TChar), HostedSw, _)):-
-    allTrusted(HostedSw) ; untrusted(HostedSw, TChar).
-
-allTrusted(HostedSw):-
-    \+ (
-        member(Sw, HostedSw),
-        software(Sw, Data,Characteristics,_,_),
-        labelC(Data, Characteristics,(TData,TChar)),
-        lt(TChar, TData)
-    ).
-
-untrusted(HostedSw, PTChar):-
-    \+ (
-        member(Sw, HostedSw),
-        software(Sw, Data,Characteristics,_,_),
-        labelC(Data, Characteristics,(CTData,CTChar)),
-        gte(CTChar, CTData),
-        dif(PTChar, CTChar)
-    ).
-
-checkP(AppId):-
-    sKnife(AppId, EP),
-    \+ (
-        member(P, EP),
-        \+ wellFormedPartition(P)
-    ).
