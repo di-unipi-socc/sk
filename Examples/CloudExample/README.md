@@ -6,7 +6,7 @@ The document describe all the methodology, the formal declarations and the proof
 
 ## Running the example
 
-To run the example the [examples parent directory](https://github.com/di-unipi-socc/sk/tree/main/examples) instruction should be followed.
+To run the example the [examples parent directory](https://github.com/di-unipi-socc/sk/tree/main/Examples) instruction should be followed.
 
 The eligible partitioning for the application identified by `iotApp1` is given issuing the query `?- sKnife(iotApp1, P).` to the base version of **SKnife**.
 The result is:
