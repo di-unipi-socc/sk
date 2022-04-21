@@ -1,6 +1,7 @@
 <p><img align="left" width="100"> <h1>Cloud application Example</h1></p>
 
-Here are stored the declaration to run the example of the Cloud application described in the document...
+Here are stored the declaration to run the example of the Cloud application described in the document [Extended article](https://github.com/di-unipi-socc/sk/blob/main/Examples/CloudExample/CloudExample%20extended.pdf).
+
 The document describe all the methodology, the formal declarations and the proofs behind *SKnife*.
 
 ## Running the example
